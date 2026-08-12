@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "halluciwatch"
+version = "0.1.0"
+description = "Real-time hallucination risk detection for LLMs via internal neural signal fingerprinting"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [{ name = "HalluciWatch Team" }]
+keywords = ["llm", "hallucination", "ai-safety", "machine-learning", "nlp"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "numpy>=1.21",
+    "scikit-learn>=1.0",
+]
+
+[project.optional-dependencies]
+torch = [
+    "torch>=2.0",
+    "transformers>=4.30",
+    "accelerate>=0.20",
+]
+langchain = [
+    "langchain-core>=0.1",
+    "langchain-huggingface>=0.1",
+]
+server = [
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.23",
+    "pydantic>=2.0",
+]
+mlflow = [
+    "mlflow>=2.8",
+]
+train = [
+    "lightgbm>=4.0",
+    "xgboost>=2.0",
+    "optuna>=3.4",
+    "datasets>=2.15",
+]
+all = [
+    "halluciwatch[torch,langchain,server,mlflow,train]",
+]
+
+[project.urls]
+Homepage = "https://github.com/halluciwatch/halluciwatch"
+Documentation = "https://halluciwatch.readthedocs.io"
+Repository = "https://github.com/halluciwatch/halluciwatch"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/halluciwatch"]
+
+[tool.ruff]
+line-length = 99
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
