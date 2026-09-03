@@ -1,0 +1,21 @@
+# Local tooling scratch (venv used while developing)
+.work/
+
+# Debris from browser-automation tooling
+.playwright-mcp/
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Stray screenshots from local testing (keep docs/screenshots/)
+/*.png
+
+# OS
+.DS_Store
+
+# Secrets
+.env
+.env.local

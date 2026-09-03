@@ -1,330 +1,298 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* ─────────────────────────────────────────────────────────────────────────
+   HalluciWatch design system
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-heading);
-  --font-display: var(--font-display);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-neon: var(--neon);
-  --color-neon-foreground: var(--neon-foreground);
-  --color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+   Art direction: a scientific instrument, not a SaaS product. The reference
+   points are a lab notebook and a printed paper — warm paper ground, editorial
+   serif for statements, monospace wherever a number appears. Every measurement
+   on this site is real, so the design's job is to look like it can be trusted
+   with a number, not to look exciting.
+
+   Light is the default. Three reasons: the data (token heat-maps, risk ramps,
+   comparison tables) is far more legible on paper than on black; every
+   competing AI-infra site is dark, so this reads as deliberate; and the
+   "published research" character wants paper.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Type ------------------------------------------------------------------ */
+  --font-display:
+    var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Editorial ramp. Display sizes get negative tracking; small caps get wide
+     positive tracking. Line-heights tighten as size grows. */
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.14em;
+  --text-eyebrow--font-weight: 500;
+
+  --text-display: clamp(2.75rem, 7vw, 5.25rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.028em;
+
+  --text-title: clamp(2rem, 4.2vw, 3.25rem);
+  --text-title--line-height: 1.05;
+  --text-title--letter-spacing: -0.022em;
+
+  --text-heading: clamp(1.375rem, 2.2vw, 1.75rem);
+  --text-heading--line-height: 1.2;
+  --text-heading--letter-spacing: -0.014em;
+
+  --text-lede: clamp(1.0625rem, 1.5vw, 1.25rem);
+  --text-lede--line-height: 1.55;
+  --text-lede--letter-spacing: -0.008em;
+
+  /* Rhythm ---------------------------------------------------------------- */
+  --spacing-section: clamp(5rem, 11vw, 9rem);
+  --spacing-gutter: clamp(1.25rem, 4vw, 2.5rem);
+
+  --radius-card: 14px;
+  --radius-pill: 999px;
+
+  --container-content: 68rem; /* body text and most sections */
+  --container-wide: 82rem; /* the demo and full-bleed data */
+
+  /* Motion. One easing for almost everything: a gentle decelerate that never
+     overshoots. Data should settle, not bounce. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* ── Palette ──────────────────────────────────────────────────────────────
+   Warm paper light / warm ink dark. Borders are hairlines mixed from the
+   foreground, never a flat grey, so they sit correctly on any surface.
+   ───────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --neon: oklch(0.65 0.19 264);
-  --neon-foreground: oklch(0.98 0 0);
-  --surface: oklch(0.96 0 0);
-  --surface-foreground: oklch(0.145 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --paper: oklch(0.985 0.004 92); /* warm off-white, the page ground */
+  --paper-raised: oklch(1 0 0); /* cards sit slightly brighter than ground */
+  --paper-sunken: oklch(0.965 0.006 92); /* insets, code blocks, table zebra */
+  --ink: oklch(0.19 0.012 68); /* warm near-black, never pure #000 */
+  --ink-muted: oklch(0.52 0.012 68);
+  --ink-faint: oklch(0.68 0.01 68);
+  --rule: oklch(0.19 0.012 68 / 0.11); /* hairline */
+  --rule-strong: oklch(0.19 0.012 68 / 0.2);
+
+  /* Accent: deep ink-blue. Restrained, reads as instrument/ink rather than
+     "tech startup gradient". Used for interactive affordances only. */
+  --accent: oklch(0.46 0.13 255);
+  --accent-hover: oklch(0.4 0.14 255);
+  --accent-fg: oklch(0.99 0 0);
+  --accent-wash: oklch(0.46 0.13 255 / 0.08);
+
+  /* Risk scale. Deliberately NOT red/green alone — deuteranopia makes that
+     pair the single worst choice for a safety signal. This ramp separates on
+     hue *and* lightness (teal 195° → amber 75° → red 25°), and every risk
+     readout in the UI also carries an icon and an explicit word, so colour is
+     never the only channel. */
+  --risk-safe: oklch(0.58 0.11 195);
+  --risk-caution: oklch(0.68 0.14 75);
+  --risk-danger: oklch(0.55 0.19 25);
+  --risk-neutral: oklch(0.6 0.015 68);
+
+  --risk-safe-wash: oklch(0.58 0.11 195 / 0.12);
+  --risk-caution-wash: oklch(0.68 0.14 75 / 0.14);
+  --risk-danger-wash: oklch(0.55 0.19 25 / 0.12);
+  --risk-neutral-wash: oklch(0.6 0.015 68 / 0.1);
+
+  --shadow-card:
+    0 1px 2px oklch(0.19 0.012 68 / 0.04),
+    0 8px 24px -12px oklch(0.19 0.012 68 / 0.1);
+  --shadow-float:
+    0 2px 4px oklch(0.19 0.012 68 / 0.05),
+    0 16px 40px -16px oklch(0.19 0.012 68 / 0.16);
 }
 
 .dark {
-  --background: oklch(0.09 0.01 264);
-  --foreground: oklch(0.97 0.005 264);
-  --card: oklch(0.14 0.015 264);
-  --card-foreground: oklch(0.97 0.005 264);
-  --popover: oklch(0.14 0.015 264);
-  --popover-foreground: oklch(0.97 0.005 264);
-  --primary: oklch(0.7 0.18 264);
-  --primary-foreground: oklch(0.13 0.03 264);
-  --secondary: oklch(0.2 0.02 264);
-  --secondary-foreground: oklch(0.97 0.005 264);
-  --muted: oklch(0.2 0.015 264);
-  --muted-foreground: oklch(0.65 0.02 264);
-  --accent: oklch(0.2 0.02 264);
-  --accent-foreground: oklch(0.97 0.005 264);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.25 0.015 264);
-  --input: oklch(0.2 0.02 264);
-  --ring: oklch(0.55 0.18 264);
-  --chart-1: oklch(0.7 0.18 264);
-  --chart-2: oklch(0.65 0.15 200);
-  --chart-3: oklch(0.6 0.12 160);
-  --chart-4: oklch(0.55 0.1 320);
-  --chart-5: oklch(0.5 0.08 40);
-  --neon: oklch(0.75 0.2 264);
-  --neon-foreground: oklch(0.13 0.03 264);
-  --surface: oklch(0.16 0.015 264);
-  --surface-foreground: oklch(0.97 0.005 264);
-  --sidebar: oklch(0.12 0.015 264);
-  --sidebar-foreground: oklch(0.97 0.005 264);
-  --sidebar-primary: oklch(0.7 0.18 264);
-  --sidebar-primary-foreground: oklch(0.97 0.005 264);
-  --sidebar-accent: oklch(0.2 0.02 264);
-  --sidebar-accent-foreground: oklch(0.97 0.005 264);
-  --sidebar-border: oklch(0.25 0.015 264);
-  --sidebar-ring: oklch(0.55 0.18 264);
+  --paper: oklch(0.16 0.008 68);
+  --paper-raised: oklch(0.2 0.009 68);
+  --paper-sunken: oklch(0.13 0.008 68);
+  --ink: oklch(0.95 0.006 92);
+  --ink-muted: oklch(0.68 0.008 92);
+  --ink-faint: oklch(0.5 0.008 92);
+  --rule: oklch(0.95 0.006 92 / 0.12);
+  --rule-strong: oklch(0.95 0.006 92 / 0.22);
+
+  --accent: oklch(0.72 0.13 250);
+  --accent-hover: oklch(0.79 0.12 250);
+  --accent-fg: oklch(0.16 0.008 68);
+  --accent-wash: oklch(0.72 0.13 250 / 0.14);
+
+  /* Lifted for contrast against a dark ground; hue relationships preserved. */
+  --risk-safe: oklch(0.74 0.12 195);
+  --risk-caution: oklch(0.8 0.14 78);
+  --risk-danger: oklch(0.68 0.18 25);
+  --risk-neutral: oklch(0.6 0.012 92);
+
+  --risk-safe-wash: oklch(0.74 0.12 195 / 0.16);
+  --risk-caution-wash: oklch(0.8 0.14 78 / 0.16);
+  --risk-danger-wash: oklch(0.68 0.18 25 / 0.16);
+  --risk-neutral-wash: oklch(0.6 0.012 92 / 0.12);
+
+  --shadow-card:
+    0 1px 2px oklch(0 0 0 / 0.4), 0 8px 24px -12px oklch(0 0 0 / 0.5);
+  --shadow-float:
+    0 2px 4px oklch(0 0 0 / 0.4), 0 16px 40px -16px oklch(0 0 0 / 0.6);
 }
+
+/* Expose the palette to Tailwind utilities (bg-paper, text-ink-muted, ...) */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-wash: var(--accent-wash);
+  --color-risk-safe: var(--risk-safe);
+  --color-risk-caution: var(--risk-caution);
+  --color-risk-danger: var(--risk-danger);
+  --color-risk-neutral: var(--risk-neutral);
+  --color-risk-safe-wash: var(--risk-safe-wash);
+  --color-risk-caution-wash: var(--risk-caution-wash);
+  --color-risk-danger-wash: var(--risk-danger-wash);
+  --color-risk-neutral-wash: var(--risk-neutral-wash);
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--rule);
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
-    @apply font-sans scroll-smooth;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings:
+      "cv05" 1,
+      "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Tabular figures everywhere a measurement appears, so digits don't jitter
+     as values animate. */
+  .font-mono,
+  code,
+  kbd,
+  samp {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "calt" 0;
+  }
+
+  ::selection {
+    background: var(--accent-wash);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* The site animates measurements. Anyone who has asked not to see motion
+     gets the final state immediately rather than a degraded animation. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-/* Aurora background effect */
-.aurora {
-  position: relative;
-  overflow: hidden;
+/* ── Utilities ────────────────────────────────────────────────────────────── */
+
+@utility eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  letter-spacing: var(--text-eyebrow--letter-spacing);
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
-.aurora::before {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  background:
-    radial-gradient(ellipse at 25% 60%, rgba(99, 102, 241, 0.4) 0, transparent 55%),
-    radial-gradient(ellipse at 75% 40%, rgba(45, 212, 191, 0.3) 0, transparent 55%),
-    radial-gradient(ellipse at 50% 80%, rgba(139, 92, 246, 0.25) 0, transparent 55%);
-  animation: aurora 20s ease infinite alternate;
-  filter: blur(60px);
-  pointer-events: none;
-  z-index: 0;
+/* The editorial voice: serif, with italic available for emphasis inside a
+   headline the way Wispr Flow and Resend use it. */
+@utility display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: var(--text-display--line-height);
+  letter-spacing: var(--text-display--letter-spacing);
+  font-weight: 400;
 }
 
-@keyframes aurora {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(-5%, 3%) scale(1.05); }
-  66%  { transform: translate(3%, -5%) scale(0.98); }
-  100% { transform: translate(-2%, 2%) scale(1.02); }
+@utility title {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+  font-weight: 400;
 }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, oklch(0.7 0.18 264), oklch(0.65 0.2 200), oklch(0.7 0.15 320));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@utility rule-t {
+  border-top: 1px solid var(--rule);
 }
 
-/* Glass card */
-.glass-card {
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dark .glass-card {
-  background: rgba(15, 15, 30, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Glow effect */
-.glow-border {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15), 0 0 60px rgba(99, 102, 241, 0.05);
-}
-
-.glow-border:hover {
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.25), 0 0 80px rgba(99, 102, 241, 0.1);
-}
-
-/* Animated gradient border */
-.gradient-border {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, oklch(0.7 0.18 264), oklch(0.65 0.2 200), oklch(0.7 0.15 320), oklch(0.7 0.18 264));
-  background-size: 300% 300%;
-  animation: gradient-shift 8s ease infinite;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-/* Pulse animation */
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-.pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-/* Grid pattern background */
-.grid-pattern {
+/* A faint engineering grid, used behind the hero only. Signals "instrument"
+   without becoming decoration. */
+@utility grid-paper {
   background-image:
-    linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(to right, var(--rule) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+  background-size: 64px 64px;
 }
 
-/* Smooth scrolling for GSAP */
-.lenis {
-  scroll-behavior: auto;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: oklch(0.12 0.01 264);
-}
-
-::-webkit-scrollbar-thumb {
-  background: oklch(0.3 0.02 264);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.4 0.02 264);
-}
-
-/* Selection */
-::selection {
-  background: oklch(0.7 0.18 264 / 0.3);
-  color: inherit;
-}
-
-/* Mermaid diagrams */
-.mermaid-host svg {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-
-.mermaid-host .nodeLabel,
-.mermaid-host .edgeLabel,
-.mermaid-host .cluster-label {
-  font-family: var(--font-sans), ui-sans-serif, system-ui;
-  line-height: 1.45;
-}
-
-.mermaid-host .nodeLabel small {
-  display: inline-block;
-  margin-top: 2px;
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.72em;
-  opacity: 0.78;
-}
-
-.mermaid-host .cluster rect {
-  rx: 12px;
-  ry: 12px;
-}
-
-.mermaid-host .node rect,
-.mermaid-host .node polygon {
-  rx: 10px;
-  ry: 10px;
-}
-
-.mermaid-host .edgePath .path {
-  stroke-width: 1.5px;
-}
-
-/* Risk gauge colors */
-.risk-low { color: oklch(0.7 0.15 160); }
-.risk-medium { color: oklch(0.75 0.15 85); }
-.risk-high { color: oklch(0.65 0.2 25); }
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .aurora::before {
-    animation: none;
+@keyframes hw-sweep {
+  from {
+    transform: translateX(-100%);
   }
-  .gradient-border::before {
-    animation: none;
+  to {
+    transform: translateX(100%);
   }
-  .pulse-glow {
-    animation: none;
+}
+
+/* Indeterminate progress for "the model is still generating". */
+@utility sweep {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--accent-wash),
+      transparent
+    );
+    animation: hw-sweep 1.4s var(--ease-in-out-soft) infinite;
   }
 }
