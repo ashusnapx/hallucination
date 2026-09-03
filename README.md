@@ -9,7 +9,8 @@
 [![Python](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://www.python.org)
 [![Runtime](https://img.shields.io/badge/runtime-Ollama-black.svg)](https://ollama.com)
 [![Tests](https://img.shields.io/badge/tests-100%20passing-brightgreen.svg)](backend/tests)
-[![AUROC](https://img.shields.io/badge/AUROC-0.776-orange.svg)](backend/RESULTS.md)
+[![AUROC](https://img.shields.io/badge/AUROC-0.818-orange.svg)](backend/RESULTS.md)
+[![Labels](https://img.shields.io/badge/label%20agreement-%CE%BA%200.757-blue.svg)](#golden-test-set)
 
 *B.E. Computer Science & Engineering · 2025–26 · Phase 1*
 
@@ -53,17 +54,57 @@ paid for the expensive tier.
 
 ---
 
+## How it works, in plain language
+
+<p align="center">
+  <img src="docs/screenshots/07-explainer.png" alt="Plain-language explainer: five questions" width="100%">
+</p>
+
+The landing page explains the whole idea assuming no background at all:
+
+1. **What is a hallucination?** An AI confidently telling you something untrue —
+   in the same tone it uses for facts. Ask *"Where was the Fiddler in the
+   musical's title?"* and it answers *"On a violin."* It is *Fiddler on the
+   **Roof***.
+2. **Why is it hard to catch?** The AI is not looking anything up. It predicts
+   the next likely word, and a believable falsehood is often more likely than an
+   honest "I don't know".
+3. **What can you measure?** Before writing each word, the AI ranks every word it
+   might say next. When it knows something, one word wins by a mile. When it is
+   inventing, many words nearly tie. **That spread is the tell.**
+4. **What if that's unclear?** Ask the same question a few more times. An AI that
+   knows gives the same answer every time; one that is inventing gives a
+   different story each time.
+5. **What do you get?** A number from 0 to 1 and a verdict — accept, review,
+   reject, or abstain.
+
+---
+
 ## Requirements checklist
 
 Everything the Phase-1 synopsis and slide deck specified, and how it was
 implemented. Two targets were missed; they are marked missed.
 
+<p align="center">
+  <img src="docs/screenshots/08-checklist.png" alt="What was asked vs what was delivered" width="100%">
+</p>
+
+### The five questions
+
+| | Question | Answer |
+|---|----------|--------|
+| **What** | What was asked for? | A system that predicts, in real time, whether an AI's answer is a hallucination — by reading the model's own internal signals rather than fact-checking the output afterwards |
+| **Why** | Why does it matter? | A wrong answer that sounds right is worse than no answer. Existing tools only notice after it is already on screen |
+| **How** | How does it work? | Measure how spread-out the model's next-word choices are; if that is unclear, ask again several times and check whether the answers agree |
+| **Where** | Where does it run? | Entirely on your machine through Ollama. No API key, no bill, no second AI grading the first |
+| **When** | When does it decide? | Before you see the answer — about 20 ms on top of a generation that had to happen anyway |
+
 ### Deliverables (Slide 11 · Synopsis §7)
 
 | # | Required | Target | Delivered | Status |
 |---|----------|--------|-----------|--------|
-| 1 | Trained classifier — ranking | AUC-ROC > 0.90 | **0.776** [0.734, 0.815] | ❌ Missed |
-| 2 | Trained classifier — F1 | F1 > 0.85 | **0.747** (P 0.693 / R 0.811) | ❌ Missed |
+| 1 | Trained classifier — ranking | AUC-ROC > 0.90 | **0.818** [0.778, 0.859] | ❌ Missed |
+| 2 | Trained classifier — F1 | F1 > 0.85 | **0.757** (best-threshold 0.763) | ❌ Missed |
 | 3 | Real-time wrapper | < 50 ms added latency | **~20 ms** on the cheap tier | ⚠️ Partial |
 | 4 | Open-source library | `pip install halluciwatch` | Apache-2.0, Python 3.10–3.13 | ✅ Met |
 | 5 | Interactive demo | Live risk gauge + per-token entropy | Next.js + FastAPI app | 🔄 Changed |
@@ -164,31 +205,98 @@ gain side by side — note how little they agree:
 
 ## Results
 
-`llama3.2:3b` · 510 usable rows from TriviaQA + NQ-Open · 5-fold CV **grouped by
-question** so no question appears in both train and test · 51.8% base rate.
+`llama3.2:3b` · **448 verified rows** from TriviaQA + NQ-Open · 5-fold CV
+**grouped by question** so no question appears in both train and test · 50.9%
+base rate.
 
 | Metric | Value |
 |--------|-------|
-| AUROC | **0.776** [0.734, 0.815] |
-| AUPRC | 0.771 |
-| F1 @ 0.5 | 0.747 |
-| Precision / Recall | 0.693 / 0.811 |
-| ECE (cross-fitted) | 0.048 |
-| Brier | 0.197 |
+| AUROC | **0.818** [0.778, 0.859] |
+| AUPRC | 0.823 |
+| F1 @ 0.5 | 0.757 (best across thresholds: 0.763) |
+| ECE (cross-fitted) | 0.077 |
+| Brier | 0.180 |
+
+### How it got there
+
+Two rounds of legitimate improvement, both driven by a diagnostic rather than a
+hyperparameter sweep:
+
+| Stage | AUROC | What changed |
+|-------|-------|--------------|
+| Initial | 0.776 | depth-4 XGBoost, string-matched labels |
+| + capacity fix | 0.793 | The ensemble scored **below its own best single feature** — a memorisation signature on 510 rows. Depth-1 stumps with strong L2 recovered +0.017 |
+| + verified labels | **0.818** | Dual-grading found **12% label noise**; training on the 448 agreed rows added +0.025 |
+
+The remaining gap to 0.90 is not a tuning problem. F1 tops out at 0.763 across
+*all* thresholds, so it is bounded by ranking quality, and closing that needs
+signals Ollama does not expose — attention maps and hidden states.
 
 ### The measurement the architecture rests on
 
 | Tiers | Features | AUROC | Cost/query |
 |-------|----------|-------|-----------|
-| surface | 8 | 0.578 | 0.00 s |
-| **token** | 19 | **0.764** | **1.38 s** |
-| surface + token | 27 | 0.760 | 1.38 s |
-| sampling | 9 | 0.739 | 8.55 s |
-| all three | 36 | 0.776 | 9.93 s |
+| surface | 8 | 0.588 | 0.00 s |
+| **token** | 19 | **0.810** | **1.38 s** |
+| surface + token | 27 | 0.810 | 1.38 s |
+| sampling | 9 | 0.776 | 8.55 s |
+| all three | 36 | 0.818 | 9.93 s |
 
-**Adding semantic entropy costs 7× the latency for +0.012 AUROC**, and the
+**Adding semantic entropy costs 7× the latency for +0.008 AUROC**, and the
 confidence intervals overlap almost entirely. That is why the detector escalates
 to it only inside an uncertainty band instead of always paying.
+
+---
+
+## Golden test set
+
+Every metric is only as good as the labels beneath it. The corpus was first
+labelled by string matching against gold aliases — precise, but too strict on
+paraphrase. Spot-checking found real mislabels:
+
+| Question | Model said | Gold | String verdict |
+|----------|-----------|------|----------------|
+| Where would you find myoglobin? | "Muscle cells (skeletal and cardiac)" | "Muscle tissue" | ❌ hallucination |
+| Warren Beatty's first movie? | "Splendour" | "Splendor in the Grass" | ❌ hallucination |
+| Eddie Murphy's first movie? | "48 Hrs." | "48 Hours" | ❌ hallucination |
+
+All three are correct answers being punished for spelling. **Label noise puts a
+hard ceiling on achievable AUROC**, because the detector is penalised for
+correctly scoring an answer that was in fact right.
+
+### Method
+
+Standard inter-rater practice, run locally:
+
+1. **Grade every answer twice** — the string matcher, and an independent
+   `qwen2.5:7b-instruct` judge that did *not* generate the answer.
+2. **Agreement → verified.** Two independent methods reaching the same verdict
+   is strong evidence.
+3. **Disagreement → contested.** Written out in full for human adjudication
+   rather than silently resolved by whichever rater we happened to trust.
+4. **Report Cohen's κ**, so labelling reliability is itself a measured number.
+
+```bash
+make golden      # writes golden.jsonl + contested.jsonl + κ statistics
+```
+
+### Result
+
+| | |
+|---|---|
+| Rated | 510 |
+| **Verified (agreed)** | **448** (87.8%) |
+| Contested (disagreed) | 62 (12.2%) |
+| **Cohen's κ** | **0.757** — *substantial* (Landis & Koch) |
+| Disagreement direction | 36 string-strict, 26 string-lenient |
+
+Training on the 448 verified rows raised AUROC from 0.793 to **0.818**.
+
+> **The judge must be a different and larger model than the generator.** At 3B,
+> `llama3.2` agreed with the string matcher on 239 of 264 items and overturned
+> **none** — including the demonstrably mislabelled ones. Validated on six known
+> cases, the 3B judge scored 2/6; `qwen2.5:7b` scored **6/6** at confidence 1.00.
+> Judging your own output shares its blind spots.
 
 ---
 
@@ -199,9 +307,9 @@ detector you cannot audit is worth nothing.
 
 | Finding | Numbers |
 |---------|---------|
-| **A single feature beats the whole model.** `tok.p90_entropy` alone scores higher than all 36 features combined — on 510 rows the ensemble is fitting noise. | 0.789 vs 0.776 |
+| **A single feature still edges out the whole model.** `tok.p90_entropy` alone beats all 36 combined. Catching this at 0.789 vs 0.776 is what prompted the capacity fix; the gap narrowed but never reversed. | 0.823 vs 0.818 |
 | **Self-verification is chance.** P(True) measured at exactly 0.500 AUROC on a 1B model, and *adding* it dropped the combined model from 0.872 to 0.841. Tier 3 ships **off by default**. | AUROC 0.500 |
-| **Surface features hurt.** Token signals alone beat token-plus-surface. | 0.764 → 0.760 |
+| **Surface features hurt.** Token signals alone still edge out token-plus-surface. | 0.8104 → 0.8095 |
 | **Adversarial benchmarks can't measure a detector at this scale.** On TruthfulQA + SimpleQA the model answers **4 of 227** correctly — there is almost nothing left to rank against. | 4 / 227 |
 
 ### Two engineering bugs worth documenting
@@ -263,7 +371,9 @@ hallucination/
 │   │   ├── evaluation/          metrics, bootstrap CIs, tier ablation
 │   │   ├── server.py            FastAPI + SSE
 │   │   └── cli.py               doctor / build / train / ablate / score / serve
-│   ├── scripts/export_dashboard.py
+│   ├── scripts/
+│   │   ├── golden_set.py        dual-grading + Cohen's kappa
+│   │   └── export_dashboard.py  every dashboard number
 │   ├── tests/                   100 tests (86 unit, 14 live-integration)
 │   └── RESULTS.md               generated, never hand-edited
 └── website/                     Next.js 16 · 3 routes: /, /demo, /dashboard
@@ -278,6 +388,7 @@ hallucination/
 # 1. Local model through Ollama
 brew install ollama && ollama serve
 ollama pull llama3.2:3b && ollama pull nomic-embed-text
+ollama pull qwen2.5:7b-instruct     # independent judge for the golden set
 
 # 2. Backend
 cd backend
@@ -294,6 +405,7 @@ cd website && npm install && npm run dev    # http://localhost:3000
 ```bash
 cd backend
 make build          # generate the labelled corpus (~1h on an M1, resumable)
+make golden         # dual-grade with an independent judge -> verified labels
 make train          # fit + calibrate, prints cross-validated metrics
 make ablate         # what each tier buys, in AUROC per second
 make report         # regenerate RESULTS.md

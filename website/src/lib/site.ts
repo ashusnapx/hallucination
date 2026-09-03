@@ -8,14 +8,14 @@ export const INSTALL_CMD = "pip install halluciwatch";
  *  5-fold CV grouped by question, 51.8% hallucination base rate.
  *  Source: backend/RESULTS.md — keep in sync. */
 export const RESULTS = {
-  auroc: 0.776,
-  aurocCI: [0.734, 0.815] as const,
-  auprc: 0.771,
-  f1: 0.747,
-  ece: 0.048,
-  brier: 0.197,
-  n: 510,
-  baseRate: 0.518,
+  auroc: 0.818,
+  aurocCI: [0.778, 0.859] as const,
+  auprc: 0.823,
+  f1: 0.757,
+  ece: 0.077,
+  brier: 0.18,
+  n: 448,
+  baseRate: 0.509,
   model: "llama3.2:3b",
 } as const;
 

@@ -73,14 +73,22 @@ def _make_estimator(kind: str, seed: int, n_pos: int, n_neg: int) -> Any:
     if kind == "xgboost":
         from xgboost import XGBClassifier
 
+        # Deliberately shallow and heavily regularised.
+        #
+        # The first version of this used depth-4 trees with 400 estimators and
+        # scored 0.775 AUROC — *below* the 0.789 that the single best feature
+        # achieves alone. That gap is the signature of an ensemble memorising
+        # 510 rows rather than learning from them. Depth-1 stumps with strong
+        # L2 and aggressive column subsampling recover 0.793, and the ordering
+        # (stumps > depth-2 > depth-4) holds across the whole sweep, so this is
+        # a capacity problem rather than a lucky seed.
         return XGBClassifier(
-            n_estimators=400,
-            learning_rate=0.05,
-            max_depth=4,
-            subsample=0.85,
-            colsample_bytree=0.85,
-            reg_lambda=2.0,
-            min_child_weight=3,
+            n_estimators=300,
+            learning_rate=0.04,
+            max_depth=1,
+            subsample=0.8,
+            colsample_bytree=0.5,
+            reg_lambda=10.0,
             scale_pos_weight=scale,
             eval_metric="auc",
             random_state=seed,

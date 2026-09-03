@@ -209,6 +209,7 @@ def main() -> int:
     ap.add_argument("--corpus", required=True)
     ap.add_argument("--model-dir", required=True)
     ap.add_argument("--eval-corpus", help="held-out corpus from other benchmarks")
+    ap.add_argument("--golden", help="dual-graded golden set from scripts/golden_set.py")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -326,6 +327,37 @@ def main() -> int:
                     "sources": dict(Counter(r.get("source", "?") for r in ev_rows)),
                 }
 
+    # Golden set: rows where an independent larger judge agreed with the string
+    # matcher. Scoring on verified labels separates "the detector is wrong" from
+    # "the label was wrong", which a single-rater corpus cannot do.
+    if args.golden and Path(args.golden).exists():
+        g_rows = load_corpus(args.golden)
+        stats_path = Path(str(args.golden) + ".stats.json")
+        g_stats = json.loads(stats_path.read_text()) if stats_path.exists() else {}
+        if g_rows:
+            Xg, yg, gg, _ = corpus_to_matrix(g_rows, names)
+            if len(yg) and len(np.unique(yg)) > 1:
+                raw_g, cal_g = oof_predictions(Xg, yg, gg)
+                pred_g = (cal_g >= 0.5).astype(int)
+                payload["golden"] = {
+                    **g_stats,
+                    "auroc": round(float(roc_auc_score(yg, raw_g)), 4),
+                    "auprc": round(float(average_precision_score(yg, raw_g)), 4),
+                    "f1": round(float(f1_score(yg, pred_g)), 4),
+                    "precision": round(float(precision_score(yg, pred_g, zero_division=0)), 4),
+                    "recall": round(float(recall_score(yg, pred_g)), 4),
+                    "ece": round(float(expected_calibration_error(cal_g, yg)), 4),
+                    "n": len(yg),
+                    "base_rate": round(float(yg.mean()), 4),
+                    # Best achievable F1 over all thresholds, reported alongside
+                    # the 0.5 value so threshold choice is visible rather than
+                    # hidden inside a single flattering number.
+                    "best_f1": round(
+                        float(max(f1_score(yg, (cal_g >= t).astype(int))
+                                  for t in np.unique(np.round(cal_g, 3)))), 4
+                    ),
+                }
+
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2))
@@ -334,6 +366,12 @@ def main() -> int:
         f"  AUROC {headline['auroc']} {headline['auroc_ci']}  "
         f"F1 {headline['f1']}  ECE {headline['ece']}  n={headline['n']}"
     )
+    if "golden" in payload:
+        g = payload["golden"]
+        print(
+            f"  golden:   AUROC {g['auroc']} on {g['n']} verified rows "
+            f"(kappa {g.get('cohens_kappa')}, {g.get('n_contested')} contested)"
+        )
     if "holdout" in payload:
         h = payload["holdout"]
         print(f"  held-out: AUROC {h['auroc']} on {h['n']} rows ({', '.join(h['sources'])})")

@@ -9,6 +9,7 @@ SAMPLES ?= 5
 CORPUS  ?= data/corpus/$(subst :,-,$(MODEL)).jsonl
 MODELDIR?= models/$(subst :,-,$(MODEL))
 EVALCORPUS ?= data/corpus/$(subst :,-,$(MODEL))-eval.jsonl
+JUDGE      ?= qwen2.5:7b-instruct  # must differ from MODEL: judging your own output shares its blind spots
 
 .PHONY: help setup models doctor build train ablate report score serve test lint fmt clean all
 
@@ -23,6 +24,7 @@ setup:  ## Create the venv and install the package with all extras
 models:  ## Pull the Ollama models this project uses
 	ollama pull $(MODEL)
 	ollama pull $(EMBED)
+	ollama pull $(JUDGE)
 
 doctor:  ## Check Ollama connectivity, models, logprobs and embeddings
 	$(PY) -m halluciwatch.cli doctor --model $(MODEL) --embed-model $(EMBED)
@@ -41,9 +43,15 @@ ablate:  ## Measure what each signal tier buys
 refresh:  ## Recompute sampling features from stored samples (no regeneration)
 	$(PY) -m halluciwatch.cli refresh --corpus $(CORPUS)
 
+golden:  ## Dual-grade the corpus with an independent judge -> verified labels
+	$(PY) scripts/golden_set.py --corpus $(CORPUS) \
+		--out data/corpus/golden.jsonl \
+		--contested-out data/corpus/contested.jsonl \
+		--judge-model $(JUDGE)
+
 dashboard:  ## Export every dashboard metric to the website as JSON
 	$(PY) scripts/export_dashboard.py --corpus $(CORPUS) --model-dir $(MODELDIR) \
-		--eval-corpus $(EVALCORPUS) \
+		--eval-corpus $(EVALCORPUS) --golden data/corpus/golden.jsonl \
 		--out ../website/src/data/dashboard.json
 
 report:  ## Regenerate RESULTS.md from the corpus and trained model
@@ -66,7 +74,7 @@ fmt:  ## Auto-format
 	$(PY) -m ruff format src tests scripts
 	$(PY) -m ruff check --fix src tests scripts
 
-all: doctor build train ablate report dashboard  ## Full pipeline end to end
+all: doctor build golden train ablate report dashboard  ## Full pipeline end to end
 
 clean:  ## Remove caches and build artefacts
 	rm -rf .pytest_cache .ruff_cache **/__pycache__ dist build *.egg-info

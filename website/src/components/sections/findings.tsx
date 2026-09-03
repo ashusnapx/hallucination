@@ -11,14 +11,15 @@ import { GITHUB_URL } from "@/lib/site";
 const FINDINGS = [
   {
     verdict: "One feature beats the whole model",
-    numbers: "0.789 vs 0.776",
+    numbers: "0.823 vs 0.818",
     body: (
       <>
-        <code className="font-mono text-ink">tok.p90_entropy</code> alone scores
-        higher than all 36 features combined. On 520 rows the gradient boosting
-        is fitting noise. Most of the value here is one well-chosen uncertainty
-        statistic, not a learned combination — and saying so is more useful than
-        an ensemble that looks sophisticated.
+        <code className="font-mono text-ink">tok.p90_entropy</code> alone still
+        edges out all 36 features combined. Catching this the first time — when
+        the gap was 0.789 vs 0.776 — is what prompted shrinking the model from
+        depth-4 trees to depth-1 stumps, which recovered +0.017 AUROC. The gap
+        is now nearly closed, but it has not reversed: most of the value here is
+        one well-chosen uncertainty statistic.
       </>
     ),
   },
@@ -36,24 +37,24 @@ const FINDINGS = [
   },
   {
     verdict: "Surface features actively hurt",
-    numbers: "0.764 → 0.760",
+    numbers: "0.8104 → 0.8095",
     body: (
       <>
         Hedging, length and entity density looked promising and are close to
-        free, but token signals alone beat token-plus-surface. They stay in the
-        registry so the ablation can keep re-testing them on your data, not
-        because they earned their place on ours.
+        free, but token signals alone still edge out token-plus-surface. They
+        stay in the registry so the ablation can keep re-testing them on your
+        data, not because they earned their place on ours.
       </>
     ),
   },
   {
     verdict: "The expensive tier barely earns its cost",
-    numbers: "7× time, +0.012",
+    numbers: "7× time, +0.008",
     body: (
       <>
         Semantic entropy is the strongest idea in the literature and it is the
         reason the sampling tier exists. On short-form QA with a 3B model it
-        moved AUROC from 0.764 to 0.776 for seven times the latency, with
+        moved AUROC from 0.810 to 0.818 for seven times the latency, with
         confidence intervals that overlap almost entirely. Hence a cascade
         rather than always paying.
       </>
@@ -132,15 +133,15 @@ export function Findings({ bare = false }: { bare?: boolean } = {}) {
             <p className="mt-3 text-[0.875rem] leading-relaxed text-ink-muted">
               The proposal targeted F1 &gt; 0.85 and AUROC &gt; 0.90. Measured
               here:{" "}
-              <span className="font-mono text-ink">F1 0.747, AUROC 0.776</span>{" "}
-              — short of both.
+              <span className="font-mono text-ink">F1 0.757, AUROC 0.818</span>{" "}
+              — short of both, after two rounds of legitimate improvement.
             </p>
             <p className="mt-3 text-[0.875rem] leading-relaxed text-ink-muted">
               Those literature numbers come from larger models with true
               white-box access, longer generations where semantic entropy has
               more to work with, and easier label distributions. A 3B quantised
               model answering short-form trivia through a gray-box API is a
-              harder setting. Reporting 0.776 with its interval is more useful
+              harder setting. Reporting 0.818 with its interval is more useful
               than tuning until a target is hit.
             </p>
             <a

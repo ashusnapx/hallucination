@@ -32,8 +32,8 @@ const POINTS: {
 }[] = [
   {
     label: "surface only",
-    auroc: 0.578,
-    ci: [0.526, 0.63],
+    auroc: 0.588,
+    ci: [0.536, 0.641],
     cost: 0.0,
     dx: 12,
     dy: 4,
@@ -41,8 +41,8 @@ const POINTS: {
   },
   {
     label: "token",
-    auroc: 0.764,
-    ci: [0.718, 0.806],
+    auroc: 0.81,
+    ci: [0.769, 0.851],
     cost: 1.38,
     emphasis: true,
     dx: 12,
@@ -51,8 +51,8 @@ const POINTS: {
   },
   {
     label: "surface + token",
-    auroc: 0.76,
-    ci: [0.714, 0.803],
+    auroc: 0.81,
+    ci: [0.767, 0.849],
     cost: 1.38,
     dx: 12,
     dy: 14,
@@ -60,8 +60,8 @@ const POINTS: {
   },
   {
     label: "sampling only",
-    auroc: 0.739,
-    ci: [0.691, 0.778],
+    auroc: 0.776,
+    ci: [0.731, 0.818],
     cost: 8.55,
     dx: -10,
     dy: 16,
@@ -69,8 +69,8 @@ const POINTS: {
   },
   {
     label: "all three",
-    auroc: 0.776,
-    ci: [0.733, 0.813],
+    auroc: 0.818,
+    ci: [0.778, 0.859],
     cost: 9.93,
     emphasis: true,
     dx: -6,
@@ -91,7 +91,7 @@ export function FrontierChart({ className }: { className?: string }) {
 
   const xMax = 11;
   const yMin = 0.54;
-  const yMax = 0.82;
+  const yMax = 0.86;
 
   const x = (cost: number) => M.left + (cost / xMax) * iw;
   const y = (auroc: number) =>
@@ -112,7 +112,7 @@ export function FrontierChart({ className }: { className?: string }) {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label="Detection quality against cost per query. Token signals reach 0.764 AUROC at 1.38 seconds; adding sampling reaches 0.776 at 9.93 seconds, a 7-fold cost increase for 0.012 AUROC."
+        aria-label="Detection quality against cost per query. Token signals reach 0.810 AUROC at 1.38 seconds; adding sampling reaches 0.818 at 9.93 seconds, a 7-fold cost increase for 0.008 AUROC."
       >
         <defs>
           <clipPath id={clip}>
@@ -181,7 +181,7 @@ export function FrontierChart({ className }: { className?: string }) {
           textAnchor="middle"
           className="fill-[var(--ink-muted)] font-mono text-[10px]"
         >
-          +0.012 AUROC · 7× the time
+          +0.008 AUROC · 7× the time
         </text>
 
         {pts.map((p) => {

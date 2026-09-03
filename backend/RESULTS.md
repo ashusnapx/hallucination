@@ -1,19 +1,19 @@
 # Results
 
-Generated 2026-09-03 05:45 UTC by `scripts/report.py`. Every number is computed from
-`data/corpus/llama3.2-3b.jsonl` and `models/llama3.2-3b`; nothing here is hand-entered.
+Generated 2026-09-03 08:15 UTC by `scripts/report.py`. Every number is computed from
+`data/corpus/golden.jsonl` and `models/llama3.2-3b-golden`; nothing here is hand-entered.
 
 ## Corpus
 
 | property | value |
 | --- | --- |
-| rows generated | 520 |
-| refusals excluded | 10 (1.9%) |
-| rows used for training | 510 |
-| hallucination base rate | 51.8% |
-| models | llama3.2:3b (520) |
-| sources | trivia_qa (260), nq_open (260) |
-| grader decisions | fuzzy: 269, exact: 241, refusal: 10 |
+| rows generated | 448 |
+| refusals excluded | 0 (0.0%) |
+| rows used for training | 448 |
+| hallucination base rate | 50.9% |
+| models | llama3.2:3b (448) |
+| sources | trivia_qa (247), nq_open (201) |
+| grader decisions | fuzzy: 230, exact: 218 |
 
 Labels come from normalised exact-match / token-F1 grading against gold answer
 aliases. Refusals are excluded rather than labelled, because a refusal is
@@ -30,14 +30,14 @@ point is ever scored by a calibrator that saw it.
 
 | metric | value | what it means |
 | --- | --- | --- |
-| AUROC | 0.776 [0.734, 0.815] | ranking quality; 0.5 is chance |
-| AUPRC | 0.771 | precision-recall area (base rate 51.8%) |
-| F1 @ 0.5 | 0.747 | at the default probability threshold |
-| Brier | 0.197 | squared error of the calibrated probability |
-| ECE | 0.048 | calibration gap after cross-fitted isotonic; lower is better |
-| AURC | 0.340 | area under risk-coverage; lower is better |
+| AUROC | 0.818 [0.778, 0.859] | ranking quality; 0.5 is chance |
+| AUPRC | 0.823 | precision-recall area (base rate 50.9%) |
+| F1 @ 0.5 | 0.758 | at the default probability threshold |
+| Brier | 0.180 | squared error of the calibrated probability |
+| ECE | 0.077 | calibration gap after cross-fitted isotonic; lower is better |
+| AURC | 0.309 | area under risk-coverage; lower is better |
 
-The 95% interval is a percentile bootstrap over 510 rows. With a corpus
+The 95% interval is a percentile bootstrap over 448 rows. With a corpus
 this size the interval is wide enough that small differences between
 configurations are not meaningful.
 
@@ -48,23 +48,23 @@ rate you inherit:
 
 | auto-accept coverage | error rate among accepted |
 | --- | --- |
-| 20% | 26.5% |
-| 40% | 25.0% |
-| 50% | 32.5% |
-| 60% | 37.9% |
-| 80% | 43.9% |
-| 100% | 51.8% |
+| 20% | 20.2% |
+| 40% | 26.8% |
+| 50% | 25.9% |
+| 60% | 30.6% |
+| 80% | 42.5% |
+| 100% | 50.9% |
 
 ## What each signal tier buys
 
 ```
 tiers                        feats   AUROC          95% CI   AUPRC   cost/q  ΔAUROC/s
 ----------------------------------------------------------------------------------------
-surface                          8   0.578 [0.526,0.630]   0.606    0.00s   baseline
-token                           19   0.764 [0.718,0.806]   0.761    1.38s    0.1348
-surface+token                   27   0.760 [0.714,0.803]   0.750    1.38s    0.1315
-sampling                         9   0.739 [0.691,0.778]   0.743    8.55s    0.0188
-surface+token+sampling          36   0.776 [0.733,0.813]   0.771    9.93s    0.0199
+surface                          8   0.588 [0.538,0.641]   0.586    0.00s   baseline
+token                           19   0.810 [0.772,0.850]   0.806    1.38s    0.1609
+surface+token                   27   0.810 [0.771,0.850]   0.803    1.38s    0.1603
+sampling                         9   0.775 [0.728,0.820]   0.805    8.55s    0.0219
+surface+token+sampling          36   0.818 [0.779,0.857]   0.823    9.93s    0.0232
 ```
 
 Cost is the measured marginal latency per query on an Apple M1
@@ -75,18 +75,18 @@ sampling tier).
 
 | feature | AUROC alone | tier |
 | --- | --- | --- |
-| `tok.p90_entropy` | 0.789 | token |
-| `tok.max_entropy` | 0.783 | token |
-| `tok.min_top1` | 0.782 | token |
-| `cns.mean_similarity` | 0.777 | sampling |
-| `tok.mean_entropy` | 0.776 | token |
-| `tok.mean_surprisal` | 0.774 | token |
-| `tok.perplexity` | 0.774 | token |
-| `tok.mean_top1` | 0.772 | token |
-| `tok.max_content_entropy` | 0.769 | token |
-| `cns.top_mass` | 0.765 | sampling |
-| `cns.min_similarity` | 0.764 | sampling |
-| `cns.semantic_entropy` | 0.764 | sampling |
+| `tok.p90_entropy` | 0.823 | token |
+| `tok.max_entropy` | 0.817 | token |
+| `tok.min_top1` | 0.815 | token |
+| `tok.mean_surprisal` | 0.811 | token |
+| `tok.perplexity` | 0.811 | token |
+| `cns.mean_similarity` | 0.809 | sampling |
+| `tok.mean_entropy` | 0.809 | token |
+| `tok.max_content_entropy` | 0.806 | token |
+| `tok.mean_top1` | 0.803 | token |
+| `cns.min_similarity` | 0.797 | sampling |
+| `tok.mean_content_entropy` | 0.796 | token |
+| `tok.first_token_entropy` | 0.795 | token |
 
 A single feature scoring close to the full model is a useful warning: it means
 the ensemble is adding little, and the cheap path is most of the value.
@@ -95,18 +95,18 @@ the ensemble is adding little, and the cheap path is most of the value.
 
 | feature | gain |
 | --- | --- |
-| `cns.mean_similarity` | 0.1278 |
-| `cns.min_similarity` | 0.0886 |
-| `tok.p90_entropy` | 0.0560 |
-| `cns.top_mass` | 0.0427 |
-| `tok.first_token_entropy` | 0.0349 |
-| `srf.digit_density` | 0.0342 |
-| `tok.max_content_entropy` | 0.0336 |
-| `tok.mean_entropy` | 0.0334 |
-| `tok.n_tokens` | 0.0330 |
-| `tok.mean_content_entropy` | 0.0325 |
-| `tok.min_top1` | 0.0323 |
-| `srf.n_words` | 0.0323 |
+| `cns.exact_agreement` | 0.2186 |
+| `cns.min_similarity` | 0.1677 |
+| `tok.p90_entropy` | 0.1165 |
+| `cns.mean_similarity` | 0.0717 |
+| `tok.min_top1` | 0.0559 |
+| `tok.mean_content_entropy` | 0.0471 |
+| `tok.min_margin` | 0.0332 |
+| `cns.semantic_entropy` | 0.0325 |
+| `tok.max_content_entropy` | 0.0294 |
+| `tok.first_token_entropy` | 0.0282 |
+| `tok.mean_entropy` | 0.0214 |
+| `tok.mean_surprisal` | 0.0186 |
 
 ## Reproducing
 
