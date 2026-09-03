@@ -1,216 +1,183 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
-import gsap from "gsap";
-import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { scrollTo, GITHUB_URL } from "@/lib/constants";
+import { motion, useReducedMotion } from "motion/react";
+import { ArrowUpRight, Terminal } from "lucide-react";
+import Link from "next/link";
+import { LinkButton } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
+import { GITHUB_URL, INSTALL_CMD, RESULTS } from "@/lib/site";
 
+/**
+ * Above the fold: the claim, the install line, and the product's actual output.
+ *
+ * The specimen is a real measured example — llama3.2:3b answering "On a violin"
+ * to a question about *Fiddler on the Roof*, scored 0.881 in 20ms of overhead.
+ * Showing the instrument reading beats describing it, and it is the one thing
+ * a black-box tool cannot put on its homepage.
+ */
 export function Hero() {
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-  const wordsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const reduce = useReducedMotion();
 
-  useEffect(() => {
-    if (!headlineRef.current) return;
-    const words = wordsRef.current.filter(Boolean);
-    gsap.fromTo(
-      words,
-      { opacity: 0, y: 40, rotateX: -40 },
-      {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        duration: 0.8,
-        stagger: 0.08,
-        ease: "power3.out",
-        delay: 0.3,
-      }
-    );
-  }, []);
-
-  const headlineWords = [
-    "Predict",
-    "Hallucinations",
-    "Before",
-    "They",
-    "Happen",
-  ];
+  const rise = (delay: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 14 },
+          animate: { opacity: 1, y: 0 },
+          transition: {
+            duration: 0.7,
+            delay,
+            ease: [0.22, 1, 0.36, 1] as const,
+          },
+        };
 
   return (
-    <section className="relative min-h-screen overflow-hidden pt-32 pb-20">
-      <div className="aurora absolute inset-0" />
-      <div className="grid-pattern absolute inset-0 opacity-40" />
-
-      <motion.div
-        animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 left-[15%] h-72 w-72 rounded-full bg-primary/10 blur-3xl"
-      />
-      <motion.div
-        animate={{ y: [0, 15, 0], x: [0, -15, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-1/4 right-[10%] h-96 w-96 rounded-full bg-chart-2/10 blur-3xl"
+    <section
+      id="top"
+      className="relative overflow-hidden pt-32 pb-(--spacing-section) sm:pt-40"
+    >
+      {/* A faint engineering grid, faded out at the edges. Instrument, not decoration. */}
+      <div
+        aria-hidden
+        className="grid-paper pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]"
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+      <div className="relative mx-auto max-w-(--container-wide) px-(--spacing-gutter)">
+        <motion.div {...rise(0)} className="flex justify-center">
+          <Link
+            href="/results"
+            className="inline-flex items-center gap-2 rounded-pill border border-rule bg-paper-raised px-3 py-1.5 text-[0.75rem] text-ink-muted transition-colors hover:border-rule-strong hover:text-ink"
           >
-            <Badge
-              variant="secondary"
-              className="mb-8 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium"
-            >
-              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-primary" />
-              Open Source — pip install halluciwatch
-            </Badge>
-          </motion.div>
+            <span className="font-mono text-ink">AUROC {RESULTS.auroc}</span>
+            <span className="text-ink-faint">
+              on {RESULTS.n} questions, grouped CV
+            </span>
+            <ArrowUpRight className="h-3 w-3" />
+          </Link>
+        </motion.div>
 
-          <h1
-            ref={headlineRef}
-            className="font-[family-name:var(--font-display)] mx-auto max-w-5xl text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
-            style={{ perspective: "1000px" }}
-          >
-            {headlineWords.map((word, i) => (
-              <span
-                key={i}
-                ref={(el) => { wordsRef.current[i] = el; }}
-                className={`mr-[0.3em] inline-block ${i === 1 ? "gradient-text" : ""}`}
-                style={{ opacity: 0 }}
-              >
-                {word}
-              </span>
-            ))}
-          </h1>
+        <motion.h1
+          {...rise(0.06)}
+          className="display mx-auto mt-7 max-w-4xl text-center text-balance"
+        >
+          Know it’s wrong <em>before</em> you show it
+        </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1 }}
-            className="mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl md:text-2xl"
-          >
-            A real-time hallucination risk detection system that reads internal
-            neural signals during LLM generation — before the answer is shown to
-            the user.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-            className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
-          >
-            <Button
-              size="lg"
-              className="group rounded-2xl px-8 py-6 text-base font-semibold shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30"
-              onClick={() => scrollTo("docs")}
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="rounded-2xl px-8 py-6 text-base font-semibold"
-              onClick={() => window.open(GITHUB_URL, "_blank")}
-            >
-              View on GitHub
-            </Button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.4 }}
-            className="mt-16 grid grid-cols-3 gap-8 md:gap-16"
-          >
-            {[
-              { icon: Zap, value: "<50ms", label: "Added Latency" },
-              { icon: Shield, value: ">0.90", label: "AUC-ROC Score" },
-              { icon: Sparkles, value: "35K+", label: "Training Samples" },
-            ].map(({ icon: Icon, value, label }) => (
-              <div key={label} className="flex flex-col items-center">
-                <Icon className="mb-2 h-5 w-5 text-primary/60" />
-                <span className="font-[family-name:var(--font-display)] text-2xl font-bold sm:text-3xl">
-                  {value}
-                </span>
-                <span className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                  {label}
-                </span>
-              </div>
-            ))}
-          </motion.div>
-        </div>
+        <motion.p
+          {...rise(0.12)}
+          className="mx-auto mt-6 max-w-xl text-center text-lede text-ink-muted text-pretty"
+        >
+          HalluciWatch scores how likely a local model’s answer is a
+          hallucination — from the probabilities the model already computed
+          while writing it. No API key, no judge model, no retrieval.
+        </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 40, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8, delay: 1.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto mt-20 max-w-4xl"
+          {...rise(0.18)}
+          className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
-          <div className="gradient-border">
-            <div className="glass-card rounded-2xl p-6 sm:p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-3 w-3 rounded-full bg-red-500" />
-                <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                <div className="h-3 w-3 rounded-full bg-green-500" />
-                <span className="ml-2 font-[family-name:var(--font-geist-mono)] text-xs text-muted-foreground">
-                  halluciwatch-demo
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 h-6 w-6 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                    Q
-                  </div>
-                  <div className="rounded-xl rounded-tl-none bg-muted/50 px-4 py-3 text-sm">
-                    What year was the Eiffel Tower completed?
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 h-6 w-6 shrink-0 rounded-full bg-chart-2/20 flex items-center justify-center text-xs font-bold text-chart-2">
-                    A
-                  </div>
-                  <div className="space-y-3">
-                    <div className="rounded-xl rounded-tl-none bg-muted/50 px-4 py-3 text-sm">
-                      The Eiffel Tower was completed in{" "}
-                      <span className="font-semibold text-foreground">1889</span>{" "}
-                      for the 1889 World&apos;s Fair in Paris.
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="mb-1 flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">
-                            Hallucination Risk
-                          </span>
-                          <span className="risk-low font-semibold">12%</span>
-                        </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: "12%" }}
-                            transition={{ duration: 1.5, delay: 2.5, ease: "easeOut" }}
-                            className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
-                          />
-                        </div>
-                      </div>
-                      <Badge variant="secondary" className="border-green-500/20 bg-green-500/10 text-green-400">
-                        Low Risk
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center gap-1 rounded-pill border border-rule bg-paper-raised py-1 pl-4 pr-1">
+            <Terminal
+              className="h-3.5 w-3.5 shrink-0 text-ink-faint"
+              aria-hidden
+            />
+            <code className="px-2 font-mono text-[0.8125rem] text-ink">
+              {INSTALL_CMD}
+            </code>
+            <CopyButton value={INSTALL_CMD} label="Copy install command" />
           </div>
+          <LinkButton href="/demo" size="lg">
+            See it score a real answer
+          </LinkButton>
         </motion.div>
+
+        <motion.div {...rise(0.26)} className="mt-16">
+          <Specimen />
+        </motion.div>
+
+        <motion.p
+          {...rise(0.32)}
+          className="mx-auto mt-5 max-w-lg text-center text-[0.8125rem] leading-relaxed text-ink-faint"
+        >
+          A real reading. It is <em>Fiddler on the Roof</em> — the model is
+          fluent, confident and wrong, and the verdict cost 20ms on top of a
+          generation that had to happen anyway.{" "}
+          <a
+            href={GITHUB_URL}
+            className="underline underline-offset-2 hover:text-ink-muted"
+          >
+            Reproduce it
+          </a>
+          .
+        </motion.p>
       </div>
     </section>
+  );
+}
+
+/* The measured example, rendered as the CLI actually prints it. */
+function Specimen() {
+  return (
+    <div className="mx-auto max-w-3xl overflow-hidden rounded-card border border-rule bg-paper-raised shadow-float">
+      <div className="flex items-center gap-1.5 border-b border-rule px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-rule-strong" />
+        <span className="h-2.5 w-2.5 rounded-full bg-rule-strong" />
+        <span className="h-2.5 w-2.5 rounded-full bg-rule-strong" />
+        <span className="ml-2 font-mono text-[0.6875rem] text-ink-faint">
+          halluciwatch score
+        </span>
+      </div>
+
+      <div className="space-y-3 px-4 py-5 font-mono text-[0.75rem] leading-relaxed sm:px-5 sm:text-[0.8125rem]">
+        <div className="flex gap-3">
+          <span className="shrink-0 text-ink-faint">Q</span>
+          <span className="min-w-0 text-ink-muted">
+            Where was the Fiddler in the musical’s title?
+          </span>
+        </div>
+        <div className="flex gap-3">
+          <span className="shrink-0 text-ink-faint">A</span>
+          <span className="min-w-0 text-ink">
+            <span className="rounded-[3px] bg-risk-danger-wash px-0.5">On</span>{" "}
+            <span className="rounded-[3px] bg-risk-danger-wash px-0.5">a</span>{" "}
+            <span className="rounded-[3px] bg-risk-caution-wash px-0.5">
+              violin
+            </span>
+            .
+          </span>
+        </div>
+
+        <div className="!mt-5 space-y-2 border-t border-rule pt-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <span className="w-14 shrink-0 text-[0.6875rem] text-ink-faint">
+              risk
+            </span>
+            <div className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-paper-sunken sm:w-40">
+              <div className="h-full w-[88%] rounded-full bg-risk-danger" />
+            </div>
+            <span className="text-ink">0.881</span>
+            <span className="text-risk-danger">reject</span>
+          </div>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+            <span className="w-14 shrink-0 text-[0.6875rem] text-ink-faint">
+              tiers
+            </span>
+            <span className="min-w-0 text-ink-muted">
+              surface + token{" "}
+              <span className="text-ink-faint">· sampling skipped</span>
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+            <span className="w-14 shrink-0 text-[0.6875rem] text-ink-faint">
+              latency
+            </span>
+            <span className="min-w-0 text-ink-muted">
+              1.12s{" "}
+              <span className="text-ink-faint">(scoring overhead 0.02s)</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

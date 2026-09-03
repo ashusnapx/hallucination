@@ -4,68 +4,84 @@ build-backend = "hatchling.build"
 
 [project]
 name = "halluciwatch"
-version = "0.1.0"
-description = "Real-time hallucination risk detection for LLMs via internal neural signal fingerprinting"
+version = "0.2.0"
+description = "Real-time hallucination risk scoring for local LLMs via generation-time signal fingerprinting"
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.9"
-authors = [{ name = "HalluciWatch Team" }]
-keywords = ["llm", "hallucination", "ai-safety", "machine-learning", "nlp"]
+requires-python = ">=3.10"
+authors = [{ name = "HalluciWatch" }]
+keywords = ["llm", "hallucination", "ollama", "ai-safety", "uncertainty", "calibration"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
+# The core install is deliberately tiny: an HTTP client and numpy. Scoring with
+# a trained model needs scikit-learn (the [train] extra); nothing here pulls in
+# torch or transformers, because the whole point is that the model runs in
+# Ollama rather than in this process.
 dependencies = [
-    "numpy>=1.21",
-    "scikit-learn>=1.0",
+    "httpx>=0.27",
+    "numpy>=1.24",
 ]
 
 [project.optional-dependencies]
-torch = [
-    "torch>=2.0",
-    "transformers>=4.30",
-    "accelerate>=0.20",
-]
-langchain = [
-    "langchain-core>=0.1",
-    "langchain-huggingface>=0.1",
-]
-server = [
-    "fastapi>=0.100",
-    "uvicorn[standard]>=0.23",
-    "pydantic>=2.0",
-]
-mlflow = [
-    "mlflow>=2.8",
-]
 train = [
-    "lightgbm>=4.0",
+    "scikit-learn>=1.3",
     "xgboost>=2.0",
-    "optuna>=3.4",
-    "datasets>=2.15",
 ]
-all = [
-    "halluciwatch[torch,langchain,server,mlflow,train]",
+lightgbm = ["lightgbm>=4.0"]
+server = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.6",
 ]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+]
+all = ["halluciwatch[train,server,lightgbm]"]
+
+[project.scripts]
+halluciwatch = "halluciwatch.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/halluciwatch/halluciwatch"
-Documentation = "https://halluciwatch.readthedocs.io"
-Repository = "https://github.com/halluciwatch/halluciwatch"
+Repository = "https://github.com/ashusnapx/halluciwatch"
+Issues = "https://github.com/ashusnapx/halluciwatch/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/halluciwatch"]
 
 [tool.ruff]
-line-length = 99
-target-version = "py39"
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W"]
+select = ["E", "F", "I", "W", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "B008",    # FastAPI's Depends()/Field() defaults are idiomatic in signatures
+    "RUF001",  # docstrings quote real model output containing unicode punctuation
+    "SIM905",  # a wrapped """...""".split() word list reads better than 80 quoted strings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "integration: requires a running Ollama server with models pulled",
+]
+
+[tool.coverage.run]
+source = ["src/halluciwatch"]
