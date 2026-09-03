@@ -250,6 +250,13 @@ to it only inside an uncertainty band instead of always paying.
 
 ## Golden test set
 
+<p align="center">
+  <img src="docs/screenshots/09-golden.png" alt="How the answer key was verified" width="100%">
+</p>
+
+**In one line:** before you can measure whether the tool is right, you have to
+be sure the answer key is right — and ours wasn't.
+
 Every metric is only as good as the labels beneath it. The corpus was first
 labelled by string matching against gold aliases — precise, but too strict on
 paraphrase. Spot-checking found real mislabels:
@@ -290,7 +297,20 @@ make golden      # writes golden.jsonl + contested.jsonl + κ statistics
 | **Cohen's κ** | **0.757** — *substantial* (Landis & Koch) |
 | Disagreement direction | 36 string-strict, 26 string-lenient |
 
-Training on the 448 verified rows raised AUROC from 0.793 to **0.818**.
+Training on the 448 verified rows raised AUROC from 0.793 to **0.818** —
+a bigger gain than any change made to the detector itself.
+
+| | AUROC | what changed |
+|---|-------|--------------|
+| Before | 0.776 | original model, string-matched labels |
+| After model fix | 0.793 | depth-1 stumps instead of depth-4 trees |
+| **After clean key** | **0.818** | trained only on the 448 verified rows |
+
+> **Caveat, stated plainly.** The second grader is an AI too, so this is a
+> cross-check rather than human ground truth. That is exactly why the 62
+> disagreements are written to `contested.jsonl` for a person to settle rather
+> than being resolved automatically — and why κ is reported instead of a claim
+> that the labels are now perfect.
 
 > **The judge must be a different and larger model than the generator.** At 3B,
 > `llama3.2` agreed with the string matcher on 239 of 264 items and overturned
